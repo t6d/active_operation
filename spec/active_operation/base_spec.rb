@@ -4,28 +4,34 @@ describe ActiveOperation::Base do
   context "callbacks" do
     subject :operation do
       Class.new(described_class) do
-        property :early_exit_in, accepts: [:before, :around, :execute, :after]
-        property :log, default: -> { [] }
+        attr_reader :log
+
+        property :halt_in, accepts: [:before, :around, :execute, :after]
+
+        def initialize(*)
+          super
+          @log = []
+        end
 
         before do
-          abort log if early_exit_in == :before
+          halt log if halt_in == :before
           log << :before
         end
 
         after do
-          abort log if early_exit_in == :after
+          halt log if halt_in == :after
           log << :after
         end
 
         around do |_, execute|
-          abort log if early_exit_in == :around
+          halt log if halt_in == :around
           log << :around_before
           execute.call
           log << :around_after
         end
 
         def execute
-          abort log if early_exit_in == :execute
+          halt log if halt_in == :execute
           log << :execute
           log
         end
@@ -33,7 +39,7 @@ describe ActiveOperation::Base do
     end
 
     it "should appear in the expected order when the operation is executed" do
-      log = operation.call
+      log = operation.perform
       expect(log).to eq(%i[
         before
         around_before
@@ -44,12 +50,17 @@ describe ActiveOperation::Base do
     end
 
     it "should support early exit in the before filters" do
-      log = operation.call(early_exit_in: :before)
+      log = operation.perform(halt_in: :before)
       expect(log).to eq([])
     end
 
+    it "should support early exit in the before filters" do
+      operation_instance = operation.run(halt_in: :before)
+      expect(operation_instance).to be_halted
+    end
+
     it "should support early exit in the around filters" do
-      log = operation.call(early_exit_in: :around)
+      log = operation.perform(halt_in: :around)
       expect(log).to eq([:before])
     end
   end

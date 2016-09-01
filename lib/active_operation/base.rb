@@ -2,15 +2,20 @@ class ActiveOperation::Base
   include SmartProperties
   include ActiveSupport::Callbacks
 
-  property :output
-  property :state, accepts: [:initialized, :aborted, :succeeded], required: true, default: :initialized
+  attr_accessor :output
+
+  property :state, accepts: [:initialized, :halted, :succeeded], required: true, default: :initialized
   protected :state=
 
   define_callbacks :execute
 
   class << self
-    def call(*args)
-      new(*args).call
+    def perform(*args)
+      new(*args).perform
+    end
+
+    def run(*args)
+      new(*args).run
     end
 
     protected
@@ -35,16 +40,23 @@ class ActiveOperation::Base
     end
   end
 
-  def call
-    self.output = catch(:abort) do
+  def run
+    self.output = catch(:halt) do
       run_callbacks :execute do
         execute
       end
     end
+
+    self
   end
 
-  def aborted?
-    state == :aborted
+  def perform
+    run
+    output
+  end
+
+  def halted?
+    state == :halted
   end
 
   def succeeded?
@@ -57,8 +69,8 @@ class ActiveOperation::Base
     raise NotImplementedError
   end
 
-  def abort(*args)
-    self.state = :aborted
-    throw :abort, *args
+  def halt(*args)
+    self.state = :halted
+    throw :halt, *args
   end
 end
