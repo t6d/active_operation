@@ -41,7 +41,7 @@ class ActiveOperation::Base
   end
 
   def run
-    self.output = catch(:halt) do
+    self.output = catch(:interrupt) do
       run_callbacks :execute do
         execute
       end
@@ -71,6 +71,11 @@ class ActiveOperation::Base
 
   def halt(*args)
     self.state = :halted
-    throw :halt, *args
+    throw :interrupt, *args
+  end
+
+  def succeed(*args)
+    self.state = :succeeded
+    throw :interrupt, *args
   end
 end

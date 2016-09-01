@@ -7,6 +7,7 @@ describe ActiveOperation::Base do
         attr_reader :log
 
         property :halt_in, accepts: [:before, :around, :execute, :after]
+        property :succeed_in, accepts: [:before, :around, :execute, :after]
 
         def initialize(*)
           super
@@ -15,16 +16,19 @@ describe ActiveOperation::Base do
 
         before do
           halt log if halt_in == :before
+          succeed log if succeed_in == :before
           log << :before
         end
 
         after do
           halt log if halt_in == :after
+          succeed log if succeed_in == :after
           log << :after
         end
 
         around do |_, execute|
           halt log if halt_in == :around
+          succeed log if succeed_in == :around
           log << :around_before
           execute.call
           log << :around_after
@@ -32,6 +36,7 @@ describe ActiveOperation::Base do
 
         def execute
           halt log if halt_in == :execute
+          succeed log if succeed_in == :execute
           log << :execute
           log
         end
@@ -56,7 +61,14 @@ describe ActiveOperation::Base do
 
     it "should support early exit in the before filters" do
       operation_instance = operation.run(halt_in: :before)
+      expect(operation_instance.output).to eq([])
       expect(operation_instance).to be_halted
+    end
+
+    it "should support early exit in the before filters" do
+      operation_instance = operation.run(succeed_in: :before)
+      expect(operation_instance.output).to eq([])
+      expect(operation_instance).to be_succeeded
     end
 
     it "should support early exit in the around filters" do
