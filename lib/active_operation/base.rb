@@ -3,11 +3,13 @@ class ActiveOperation::Base
   include ActiveSupport::Callbacks
 
   attr_accessor :output
+  attr_accessor :error
 
-  property :state, accepts: [:initialized, :halted, :succeeded], required: true, default: :initialized
+  property :state, accepts: [:initialized, :halted, :succeeded, :failed], required: true, default: :initialized
   protected :state=
 
   define_callbacks :execute
+  define_callbacks :error
 
   class << self
     def perform(*args)
@@ -32,6 +34,10 @@ class ActiveOperation::Base
       set_callback(:execute, :after, *args, &callback)
     end
 
+    def error(*args, &callback)
+      set_callback(:error, :after, *args, &callback)
+    end
+
     private
 
     def method_added(method)
@@ -48,6 +54,11 @@ class ActiveOperation::Base
     end
 
     self
+  rescue => error
+    self.state = :failed
+    self.error = error
+    run_callbacks :error
+    raise
   end
 
   def perform

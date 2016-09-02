@@ -10,6 +10,8 @@ describe ActiveOperation::Base do
 
         property :halt_in, accepts: STATES
         property :succeed_in, accepts: STATES
+        property :raise_in, accepts: STATES
+        property :monitor
 
         def initialize(*)
           super
@@ -19,6 +21,7 @@ describe ActiveOperation::Base do
         before do
           halt :before if halt_in == :before
           succeed :before if succeed_in == :before
+          raise RuntimeError, :before if raise_in == :before
 
           log << :before
         end
@@ -26,25 +29,32 @@ describe ActiveOperation::Base do
         after do
           halt :after if halt_in == :after
           succeed :after if succeed_in == :after
+          raise RuntimeError, :after if raise_in == :after
 
           log << :after
         end
 
-        around do |_, execute|
+        around do |_, executable|
           halt :around if halt_in == :around
           succeed :around if succeed_in == :around
+          raise RuntimeError, :around if raise_in == :around
 
           log << :around_before
-          execute.call
+          executable.call
           log << :around_after
         end
 
         def execute
           halt :execute if halt_in == :execute
           succeed :execute if succeed_in == :execute
+          raise RuntimeError, :execute if raise_in == :execute
 
           log << :execute
           log
+        end
+
+        error do
+          monitor.log(error)
         end
       end
     end
@@ -81,6 +91,13 @@ describe ActiveOperation::Base do
         operation_instance = operation.run(succeed_in: state)
         expect(operation_instance.output).to eq(state)
         expect(operation_instance).to be_succeeded
+      end
+
+      it "should run error callbacks after an exception in #{state} statements" do
+        monitor = spy("Monitor")
+        operation_instance = operation.new(raise_in: state, monitor: monitor)
+        expect { operation_instance.run }.to raise_error(RuntimeError, state.to_s)
+        expect(monitor).to have_received(:log).with(an_instance_of(RuntimeError))
       end
     end
   end
