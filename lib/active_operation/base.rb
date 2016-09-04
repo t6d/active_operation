@@ -10,6 +10,8 @@ class ActiveOperation::Base
 
   define_callbacks :execute, terminator: ActiveOperation.terminator
   define_callbacks :error
+  define_callbacks :succeeded
+  define_callbacks :halted
 
   class << self
     def perform(*args)
@@ -38,6 +40,14 @@ class ActiveOperation::Base
       set_callback(:error, :after, *args, &callback)
     end
 
+    def succeeded(*args, &callback)
+      set_callback(:succeeded, :after, *args, &callback)
+    end
+
+    def halted(*args, &callback)
+      set_callback(:halted, :after, *args, &callback)
+    end
+
     private
 
     def method_added(method)
@@ -60,6 +70,9 @@ class ActiveOperation::Base
         self.state = :succeeded
       end
     end
+
+    run_callbacks :halted if halted?
+    run_callbacks :succeeded if succeeded?
 
     self
   rescue => error

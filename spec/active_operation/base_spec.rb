@@ -3,11 +3,12 @@ require 'spec_helper'
 describe ActiveOperation::Base do
   context "callbacks" do
     let(:states) { [:before, :around, :around_after, :execute, :after] }
-    let(:monitor) { spy("Monitor") }
+    let(:error_monitor) { spy("Error monitor") }
+    let(:succeeded_monitor) { spy("Succeeded Monitor") }
+    let(:halted_monitor) { spy("Succeeded Monitor") }
 
     subject :operation do
       states = self.states
-      monitor = self.monitor
 
       Class.new(described_class) do
         attr_reader :log
@@ -15,7 +16,9 @@ describe ActiveOperation::Base do
         property :halt_in, accepts: states
         property :succeed_in, accepts: states
         property :raise_in, accepts: states
-        property :monitor, default: monitor
+        property :error_monitor
+        property :succeeded_monitor
+        property :halted_monitor
 
         def initialize(*)
           super
@@ -62,7 +65,15 @@ describe ActiveOperation::Base do
         end
 
         error do
-          monitor.log(error)
+          error_monitor.log(error) unless error_monitor.nil?
+        end
+
+        succeeded do
+          succeeded_monitor.log(:succeeded) unless succeeded_monitor.nil?
+        end
+
+        halted do
+          halted_monitor.log(:halted) unless halted_monitor.nil?
         end
       end
     end
@@ -122,37 +133,43 @@ describe ActiveOperation::Base do
     end
 
     it "should run error callbacks after an exception in a before statement" do
-      operation_instance = operation.new(raise_in: :before, monitor: monitor)
-      expect { operation_instance.run }.to raise_error(RuntimeError, "before")
-      expect(monitor).to have_received(:log).with(an_instance_of(RuntimeError))
+      expect { operation.run(raise_in: :before, error_monitor: error_monitor) }.to raise_error(RuntimeError, "before")
+      expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
     it "should run error callbacks after an exception in a after statement" do
-      operation_instance = operation.new(raise_in: :after, monitor: monitor)
-      expect { operation_instance.run }.to raise_error(RuntimeError, "after")
-      expect(monitor).to have_received(:log).with(an_instance_of(RuntimeError))
+      expect { operation.run(raise_in: :after, error_monitor: error_monitor) }.to raise_error(RuntimeError, "after")
+      expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
     it "should run error callbacks after an exception in a around statement before #execute has been called" do
-      operation_instance = operation.new(raise_in: :around, monitor: monitor)
-      expect { operation_instance.run }.to raise_error(RuntimeError, "around")
-      expect(monitor).to have_received(:log).with(an_instance_of(RuntimeError))
+      expect { operation.run(raise_in: :around, error_monitor: error_monitor) }. to raise_error(RuntimeError, "around")
+      expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
     it "should run error callbacks after an exception in a around statement after #execute has been called" do
-      operation_instance = operation.new(raise_in: :around_after, monitor: monitor)
-      expect { operation_instance.run }.to raise_error(RuntimeError, "around_after")
-      expect(monitor).to have_received(:log).with(an_instance_of(RuntimeError))
+      expect { operation.run(raise_in: :around_after, error_monitor: error_monitor) }.to raise_error(RuntimeError, "around_after")
+      expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
     it "should not run error callbacks if operation halted" do
-      operation_instance = operation.new(halt_in: :before, monitor: monitor)
-      expect(monitor).to_not have_received(:log)
+      expect(operation.run(halt_in: :before, error_monitor: error_monitor)).to be_halted
+      expect(error_monitor).to_not have_received(:log)
     end
 
     it "should not run error callbacks if operation succeeded" do
-      operation_instance = operation.new(succeed_in: :before, monitor: monitor)
-      expect(monitor).to_not have_received(:log)
+      expect(operation.run(succeed_in: :before, error_monitor: error_monitor)).to be_succeeded
+      expect(error_monitor).to_not have_received(:log)
+    end
+
+    it "should run succeeded callbacks after when the operation succeeded" do
+      expect(operation.run(succeed_in: :before, succeeded_monitor: succeeded_monitor)).to be_succeeded
+      expect(succeeded_monitor).to have_received(:log).with(:succeeded)
+    end
+
+    it "should run halted callbacks after when the operation halted" do
+      expect(operation.run(halt_in: :before, halted_monitor: halted_monitor)).to be_halted
+      expect(halted_monitor).to have_received(:log).with(:halted)
     end
   end
 end
