@@ -5,7 +5,7 @@ describe ActiveOperation::Base do
     let(:states) { [:before, :around, :around_after, :execute, :after] }
     let(:error_monitor) { spy("Error monitor") }
     let(:succeeded_monitor) { spy("Succeeded Monitor") }
-    let(:halted_monitor) { spy("Succeeded Monitor") }
+    let(:halted_monitor) { spy("Halted Monitor") }
 
     subject :operation do
       states = self.states
