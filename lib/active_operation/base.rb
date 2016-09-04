@@ -8,8 +8,10 @@ class ActiveOperation::Base
   property :state, accepts: [:initialized, :halted, :succeeded, :failed], required: true, default: :initialized
   protected :state=
 
-  define_callbacks :execute
+  define_callbacks :execute, terminator: ActiveOperation.terminator
   define_callbacks :error
+  define_callbacks :succeeded
+  define_callbacks :halted
 
   class << self
     def perform(*args)
@@ -38,6 +40,14 @@ class ActiveOperation::Base
       set_callback(:error, :after, *args, &callback)
     end
 
+    def succeeded(*args, &callback)
+      set_callback(:succeeded, :after, *args, &callback)
+    end
+
+    def halted(*args, &callback)
+      set_callback(:halted, :after, *args, &callback)
+    end
+
     private
 
     def method_added(method)
@@ -46,12 +56,23 @@ class ActiveOperation::Base
     end
   end
 
+  around do |operation, callback|
+    catch(:interrupt) do
+      callback.call
+    end
+  end
+
   def run
-    self.output = catch(:interrupt) do
-      run_callbacks :execute do
-        execute
+    run_callbacks :execute do
+      catch(:interrupt) do
+        next if completed?
+        self.output = execute
+        self.state = :succeeded
       end
     end
+
+    run_callbacks :halted if halted?
+    run_callbacks :succeeded if succeeded?
 
     self
   rescue => error
@@ -74,6 +95,10 @@ class ActiveOperation::Base
     state == :succeeded
   end
 
+  def completed?
+    halted? || succeeded?
+  end
+
   protected
 
   def execute
@@ -81,12 +106,18 @@ class ActiveOperation::Base
   end
 
   def halt(*args)
+    raise ActiveOperation::AlreadyCompletedError if completed?
+
     self.state = :halted
-    throw :interrupt, *args
+    self.output = args.length > 1 ? args : args.first
+    throw :interrupt
   end
 
   def succeed(*args)
+    raise ActiveOperation::AlreadyCompletedError if completed?
+
     self.state = :succeeded
-    throw :interrupt, *args
+    self.output = args.length > 1 ? args : args.first
+    throw :interrupt
   end
 end
