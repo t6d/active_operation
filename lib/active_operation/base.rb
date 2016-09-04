@@ -8,7 +8,7 @@ class ActiveOperation::Base
   property :state, accepts: [:initialized, :halted, :succeeded, :failed], required: true, default: :initialized
   protected :state=
 
-  define_callbacks :execute
+  define_callbacks :execute, terminator: ActiveOperation.terminator
   define_callbacks :error
 
   class << self
@@ -46,10 +46,18 @@ class ActiveOperation::Base
     end
   end
 
+  around do |operation, callback|
+    catch(:interrupt) do
+      callback.call
+    end
+  end
+
   def run
-    self.output = catch(:interrupt) do
-      run_callbacks :execute do
-        execute
+    run_callbacks :execute do
+      catch(:interrupt) do
+        next if completed?
+        self.output = execute
+        self.state = :succeeded
       end
     end
 
@@ -74,6 +82,10 @@ class ActiveOperation::Base
     state == :succeeded
   end
 
+  def completed?
+    halted? || succeeded?
+  end
+
   protected
 
   def execute
@@ -81,12 +93,18 @@ class ActiveOperation::Base
   end
 
   def halt(*args)
+    raise ActiveOperation::AlreadyCompletedError if completed?
+
     self.state = :halted
-    throw :interrupt, *args
+    self.output = args.length > 1 ? args : args.first
+    throw :interrupt
   end
 
   def succeed(*args)
+    raise ActiveOperation::AlreadyCompletedError if completed?
+
     self.state = :succeeded
-    throw :interrupt, *args
+    self.output = args.length > 1 ? args : args.first
+    throw :interrupt
   end
 end
