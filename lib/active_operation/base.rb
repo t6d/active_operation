@@ -23,7 +23,7 @@ class ActiveOperation::Base
     end
 
     def inputs
-      @inputs || []
+      []
     end
 
     protected
@@ -71,6 +71,12 @@ class ActiveOperation::Base
     def method_added(method)
       super
       protected method if method == :execute
+    end
+
+    def inherited(subclass)
+      subclass.define_singleton_method(:inputs) do
+        superclass.inputs + Array(@inputs)
+      end
     end
   end
 
