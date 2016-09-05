@@ -18,4 +18,5 @@ module ActiveOperation
 end
 
 require "active_operation/version"
+require "active_operation/input"
 require "active_operation/base"

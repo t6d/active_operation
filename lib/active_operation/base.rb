@@ -22,7 +22,25 @@ class ActiveOperation::Base
       new(*args).output
     end
 
+    def inputs
+      @inputs || []
+    end
+
     protected
+
+    def input(name, type: :positional, **configuration)
+      property(name, type: type, **configuration)
+    end
+
+    def property(name, type: :keyword,  **configuration)
+      @inputs ||= []
+
+      if type == :positional
+        @inputs << ActiveOperation::Input.new(type: :positional, property: super(name, required: true, **configuration))
+      else
+        @inputs << ActiveOperation::Input.new(type: :keyword, property: super(name, **configuration))
+      end
+    end
 
     def before(*args, &callback)
       set_callback(:execute, :before, *args, &callback)
@@ -60,6 +78,18 @@ class ActiveOperation::Base
     catch(:interrupt) do
       callback.call
     end
+  end
+
+  def initialize(*positional_arguments, **keyword_arguments)
+    expected_positional_arguments = self.class.inputs.select(&:positional?)
+
+    raise ArgumentError, "wrong number of arguments" if positional_arguments.length != expected_positional_arguments.length
+
+    super(
+      keyword_arguments.merge(
+        expected_positional_arguments.zip(positional_arguments).map { |input, value| [input.name, value] }.to_h
+      )
+    )
   end
 
   def call
