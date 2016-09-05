@@ -9,9 +9,9 @@ class ActiveOperation::Base
   protected :state=
 
   define_callbacks :execute
-  define_callbacks :error
-  define_callbacks :succeeded
-  define_callbacks :halted
+  define_callbacks :error, scope: [:name]
+  define_callbacks :succeeded, scope: [:name]
+  define_callbacks :halted, scope: [:name]
 
   class << self
     def call(*args)

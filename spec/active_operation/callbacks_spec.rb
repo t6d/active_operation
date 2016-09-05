@@ -172,4 +172,98 @@ describe ActiveOperation::Base do
       expect(halted_monitor).to have_received(:log).with(:halted)
     end
   end
+
+  context "callback objects" do
+    let(:monitor) do
+      monitor = Object.new
+
+      class << monitor
+        def log
+          @log ||= []
+        end
+
+        def before(operation)
+          log << :before
+        end
+
+        def around(operation, &execute)
+          log << :around
+          execute.call
+        end
+
+        def after(operation)
+          log << :after
+        end
+
+        def halted(operation)
+          log << :halted
+        end
+
+        def succeeded(operation)
+          log << :succeeded
+        end
+
+        def error(operation)
+          log << :error
+        end
+      end
+
+      monitor
+    end
+
+    subject(:operation) do
+      monitor = self.monitor
+
+      Class.new(described_class) do
+        input :desired_outcome, accepts: [:succeed, :halt, :error], required: true, type: :keyword
+
+        before monitor
+        around monitor
+        after monitor
+        halted monitor
+        succeeded monitor
+        error monitor
+
+        def execute
+          case desired_outcome
+          when :succeed
+            succeed
+          when :halt
+            halt
+          when :error
+            raise
+          end
+        end
+      end
+    end
+
+    it 'should run the before, around, after and succeed callbacks on the monitor if the operation succeeds' do
+      operation.call(desired_outcome: :succeed)
+      expect(monitor.log).to eq(%i[
+        before
+        around
+        after
+        succeeded
+      ])
+    end
+
+    it 'should run the before, around, after and halted callbacks on the monitor if the operation halts execution' do
+      operation.call(desired_outcome: :halt)
+      expect(monitor.log).to eq(%i[
+        before
+        around
+        after
+        halted
+      ])
+    end
+
+    it 'should run the before, around and error callbacks on the monitor if the operation fails because of an exception' do
+      operation.call(desired_outcome: :error) rescue nil
+      expect(monitor.log).to eq(%i[
+        before
+        around
+        error
+      ])
+    end
+  end
 end
