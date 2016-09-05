@@ -14,12 +14,12 @@ class ActiveOperation::Base
   define_callbacks :halted
 
   class << self
-    def perform(*args)
-      new(*args).perform
+    def call(*args)
+      new(*args).call
     end
 
-    def run(*args)
-      new(*args).run
+    def output(*args)
+      new(*args).output
     end
 
     protected
@@ -62,11 +62,11 @@ class ActiveOperation::Base
     end
   end
 
-  def run
+  def call
     run_callbacks :execute do
       catch(:interrupt) do
         next if completed?
-        self.output = execute
+        @output = execute
         self.state = :succeeded
       end
     end
@@ -82,9 +82,9 @@ class ActiveOperation::Base
     raise
   end
 
-  def perform
-    run
-    output
+  def output
+    call if @output.nil?
+    @output
   end
 
   def halted?
@@ -117,7 +117,7 @@ class ActiveOperation::Base
     raise ActiveOperation::AlreadyCompletedError if completed?
 
     self.state = :halted
-    self.output = args.length > 1 ? args : args.first
+    @output = args.length > 1 ? args : args.first
     throw :interrupt
   end
 
@@ -125,7 +125,7 @@ class ActiveOperation::Base
     raise ActiveOperation::AlreadyCompletedError if completed?
 
     self.state = :succeeded
-    self.output = args.length > 1 ? args : args.first
+    @output = args.length > 1 ? args : args.first
     throw :interrupt
   end
 end
