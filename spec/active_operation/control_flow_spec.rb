@@ -17,25 +17,25 @@ describe ActiveOperation::Base do
       end
     end
 
-    it "should run #when_succeeded callbacks if the operation succeeded" do
-      operation_instance = operation.run(desired_outcome: :succeeded)
+    it "should call #when_succeeded callbacks if the operation succeeded" do
+      operation_instance = operation.call(desired_outcome: :succeeded)
       expect { operation_instance.when_succeeded { throw :succeeded } }.to throw_symbol(:succeeded)
     end
 
     it "should invoke #when_succeeded callbacks with the output" do
-      operation_instance = operation.run(desired_outcome: :succeeded)
+      operation_instance = operation.call(desired_outcome: :succeeded)
       operation_instance.when_succeeded do |output|
         expect(output).to be(:succeeded)
       end
     end
 
-    it "should run #when_halted callbacks if the operation halted" do
-      operation_instance = operation.run(desired_outcome: :halted)
+    it "should call #when_halted callbacks if the operation halted" do
+      operation_instance = operation.call(desired_outcome: :halted)
       expect { operation_instance.when_halted { throw :halted } }.to throw_symbol(:halted)
     end
 
     it "should invoke #when_halted callbacks with the output" do
-      operation_instance = operation.run(desired_outcome: :halted)
+      operation_instance = operation.call(desired_outcome: :halted)
       operation_instance.when_halted do |output|
         expect(output).to be(:halted)
       end

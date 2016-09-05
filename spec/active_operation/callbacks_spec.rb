@@ -79,7 +79,7 @@ describe ActiveOperation::Base do
     end
 
     it "should appear in the expected order when the operation is executed" do
-      log = operation.perform
+      log = operation.output
       expect(log).to eq(%i[
         before
         around_before
@@ -89,86 +89,86 @@ describe ActiveOperation::Base do
       ])
     end
 
-    it "should run after callbacks independent of operation outcome" do
-      operation_instance = operation.run(halt_in: :before)
+    it "should call after callbacks independent of operation outcome" do
+      operation_instance = operation.call(halt_in: :before)
       expect(operation_instance.log).to eq(%i[
         after
       ])
     end
 
     it "should support halting in before statements" do
-      expect(operation.perform(halt_in: :before)).to eq(:before)
+      expect(operation.output(halt_in: :before)).to eq(:before)
     end
 
     it "should support halting in before statements" do
-      expect(operation.perform(halt_in: :before)).to eq(:before)
+      expect(operation.output(halt_in: :before)).to eq(:before)
     end
 
     it "should support halting in around statements before #execute is called" do
-      expect(operation.perform(halt_in: :around)).to eq(:around)
+      expect(operation.output(halt_in: :around)).to eq(:around)
     end
 
     it "should support succeeding in before statements" do
-      expect(operation.perform(succeed_in: :before)).to eq(:before)
+      expect(operation.output(succeed_in: :before)).to eq(:before)
     end
 
     it "should support succeeding in around statements" do
-      expect(operation.perform(succeed_in: :around)).to eq(:around)
+      expect(operation.output(succeed_in: :around)).to eq(:around)
     end
 
     it "should raise an error when halting in around statements after #execute has been called" do
-      expect { operation.perform(halt_in: :around_after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
+      expect { operation.output(halt_in: :around_after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
     end
 
     it "should raise an error when succeeding in around statements after #execute has been called" do
-      expect { operation.perform(succeed_in: :around_after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
+      expect { operation.output(succeed_in: :around_after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
     end
 
     it "should raise an error when halting in after statements" do
-      expect { operation.perform(halt_in: :after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
+      expect { operation.output(halt_in: :after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
     end
 
     it "should raise an error when succeeding in after statements" do
-      expect { operation.perform(succeed_in: :after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
+      expect { operation.output(succeed_in: :after) }.to raise_error(ActiveOperation::AlreadyCompletedError)
     end
 
-    it "should run error callbacks after an exception in a before statement" do
-      expect { operation.run(raise_in: :before, error_monitor: error_monitor) }.to raise_error(RuntimeError, "before")
+    it "should call error callbacks after an exception in a before statement" do
+      expect { operation.call(raise_in: :before, error_monitor: error_monitor) }.to raise_error(RuntimeError, "before")
       expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
-    it "should run error callbacks after an exception in a after statement" do
-      expect { operation.run(raise_in: :after, error_monitor: error_monitor) }.to raise_error(RuntimeError, "after")
+    it "should call error callbacks after an exception in a after statement" do
+      expect { operation.call(raise_in: :after, error_monitor: error_monitor) }.to raise_error(RuntimeError, "after")
       expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
-    it "should run error callbacks after an exception in a around statement before #execute has been called" do
-      expect { operation.run(raise_in: :around, error_monitor: error_monitor) }. to raise_error(RuntimeError, "around")
+    it "should call error callbacks after an exception in a around statement before #execute has been called" do
+      expect { operation.call(raise_in: :around, error_monitor: error_monitor) }. to raise_error(RuntimeError, "around")
       expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
-    it "should run error callbacks after an exception in a around statement after #execute has been called" do
-      expect { operation.run(raise_in: :around_after, error_monitor: error_monitor) }.to raise_error(RuntimeError, "around_after")
+    it "should call error callbacks after an exception in a around statement after #execute has been called" do
+      expect { operation.call(raise_in: :around_after, error_monitor: error_monitor) }.to raise_error(RuntimeError, "around_after")
       expect(error_monitor).to have_received(:log).with(an_instance_of(RuntimeError))
     end
 
-    it "should not run error callbacks if operation halted" do
-      expect(operation.run(halt_in: :before, error_monitor: error_monitor)).to be_halted
+    it "should not call error callbacks if operation halted" do
+      expect(operation.call(halt_in: :before, error_monitor: error_monitor)).to be_halted
       expect(error_monitor).to_not have_received(:log)
     end
 
-    it "should not run error callbacks if operation succeeded" do
-      expect(operation.run(succeed_in: :before, error_monitor: error_monitor)).to be_succeeded
+    it "should not call error callbacks if operation succeeded" do
+      expect(operation.call(succeed_in: :before, error_monitor: error_monitor)).to be_succeeded
       expect(error_monitor).to_not have_received(:log)
     end
 
-    it "should run succeeded callbacks after when the operation succeeded" do
-      expect(operation.run(succeed_in: :before, succeeded_monitor: succeeded_monitor)).to be_succeeded
+    it "should call succeeded callbacks after when the operation succeeded" do
+      expect(operation.call(succeed_in: :before, succeeded_monitor: succeeded_monitor)).to be_succeeded
       expect(succeeded_monitor).to have_received(:log).with(:succeeded)
     end
 
-    it "should run halted callbacks after when the operation halted" do
-      expect(operation.run(halt_in: :before, halted_monitor: halted_monitor)).to be_halted
+    it "should call halted callbacks after when the operation halted" do
+      expect(operation.call(halt_in: :before, halted_monitor: halted_monitor)).to be_halted
       expect(halted_monitor).to have_received(:log).with(:halted)
     end
   end
