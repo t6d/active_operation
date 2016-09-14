@@ -9,27 +9,13 @@ describe ActiveOperation::Base do
     end
   end
 
-  specify ".call should return the operation instance" do
-    expect(operation.call).to be_kind_of(operation)
+  specify ".call should return the operation output" do
+    expect(operation.call).to be_kind_of(Float)
   end
 
-  specify ".call should invoke the operation" do
-    operation_instance = operation.call
-    expect(operation_instance).to be_succeeded
-  end
-
-  specify ".call should generate and memoize an output" do
-    operation_instance = operation.call
-    expect(operation_instance.output).to eq(operation_instance.output)
-  end
-
-  specify ".output should return the operation output" do
-    expect(operation.output).to be_kind_of(Float)
-  end
-
-  specify "#call should return self" do
+  specify "#call should return the operation output" do
     operation_instance = operation.new
-    expect(operation_instance.call).to eq(operation_instance)
+    expect(operation_instance.call).to be_kind_of(Float)
   end
 
   specify "#output should run the operation" do
@@ -38,7 +24,8 @@ describe ActiveOperation::Base do
   end
 
   specify "#output should return the output" do
-    expect(operation.output).to be_kind_of(Float)
+    operation_instance = operation.new
+    expect(operation_instance.output).to be_kind_of(Float)
   end
 
   specify "#output should memoize the result" do
