@@ -1,4 +1,6 @@
 # ActiveOperation
+[![Gem Version](https://badge.fury.io/rb/active_operation.svg)](https://rubygems.org/gems/active_operation)
+[![Downloads](http://ruby-gem-downloads-badge.herokuapp.com/active_operation?type=total)](https://rubygems.org/gems/active_operation)
 
 `ActiveOperation` is a micro-framework for modelling business processes.
 It is the perfect companion for any Rails application.
