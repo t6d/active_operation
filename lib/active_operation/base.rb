@@ -135,14 +135,6 @@ class ActiveOperation::Base
     halted? || succeeded?
   end
 
-  def when_succeeded(&callback)
-    callback.call(output) if succeeded?
-  end
-
-  def when_halted(&callback)
-    callback.call(output) if halted?
-  end
-
   protected
 
   def execute
