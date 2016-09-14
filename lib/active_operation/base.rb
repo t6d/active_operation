@@ -18,10 +18,6 @@ class ActiveOperation::Base
       new(*args).call
     end
 
-    def output(*args)
-      new(*args).output
-    end
-
     def inputs
       []
     end
@@ -110,7 +106,7 @@ class ActiveOperation::Base
     run_callbacks :halted if halted?
     run_callbacks :succeeded if succeeded?
 
-    self
+    self.output
   rescue => error
     self.state = :failed
     self.error = error
@@ -119,7 +115,7 @@ class ActiveOperation::Base
   end
 
   def output
-    call if @output.nil?
+    call unless self.completed?
     @output
   end
 
