@@ -1,4 +1,5 @@
 require "active_support/callbacks"
+require "delegate"
 require "smart_properties"
 
 module ActiveOperation
@@ -6,6 +7,9 @@ module ActiveOperation
   class AlreadyCompletedError < Error; end
 end
 
-require "active_operation/version"
-require "active_operation/input"
-require "active_operation/base"
+require_relative "active_operation/version"
+require_relative "active_operation/input"
+require_relative "active_operation/base"
+require_relative "active_operation/pipeline"
+
+require_relative "active_operation/matcher" if defined?(:RSpec)
