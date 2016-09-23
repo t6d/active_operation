@@ -1,3 +1,5 @@
+require 'active_support/callbacks'
+
 class ActiveOperation::Base
   include SmartProperties
   include ActiveSupport::Callbacks
@@ -14,9 +16,10 @@ class ActiveOperation::Base
   define_callbacks :halted, scope: [:name]
 
   class << self
-    def call(*args)
+    def perform(*args)
       new(*args).call
     end
+    alias call perform
 
     def inputs
       []
@@ -70,6 +73,8 @@ class ActiveOperation::Base
     end
 
     def inherited(subclass)
+      super
+
       subclass.define_singleton_method(:inputs) do
         superclass.inputs + Array(@inputs)
       end
@@ -82,19 +87,21 @@ class ActiveOperation::Base
     end
   end
 
-  def initialize(*positional_arguments, **keyword_arguments)
-    expected_positional_arguments = self.class.inputs.select(&:positional?)
+  def initialize(*args)
+    arity = self.class.inputs.count(&:positional?)
+    arguments = args.shift(arity)
+    attributes = args.last.kind_of?(Hash) ? args.pop : {}
 
-    raise ArgumentError, "wrong number of arguments" if positional_arguments.length != expected_positional_arguments.length
+    raise ArgumentError, "wrong number of arguments #{arguments.length + args.length} for #{arity}" unless args.empty?
 
-    super(
-      keyword_arguments.merge(
-        expected_positional_arguments.zip(positional_arguments).map { |input, value| [input.name, value] }.to_h
-      )
-    )
+    self.class.inputs.select(&:positional?).each_with_index do |input, index|
+      attributes[input.name] = arguments[index]
+    end
+
+    super(attributes)
   end
 
-  def call
+  def perform
     run_callbacks :execute do
       catch(:abort) do
         next if completed?
@@ -113,6 +120,7 @@ class ActiveOperation::Base
     run_callbacks :error
     raise
   end
+  alias call perform
 
   def output
     call unless self.completed?
