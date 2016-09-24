@@ -39,11 +39,17 @@ module ActiveOperation
           Class.new(self, &block)
         else
           Class.new(self) do
-            operations.each do |operation|
+            byebug
+            operations.flatten.each do |operation|
               use operation
             end
           end
         end
+      end
+
+      def >>(next_operation)
+        operations = self.operations.push(next_operation)
+        Pipeline.compose(operations)
       end
 
       protected

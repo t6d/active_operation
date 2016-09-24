@@ -17,12 +17,22 @@ class ActiveOperation::Base
 
   class << self
     def perform(*args)
-      new(*args).call
+      new(*args).perform
     end
     alias call perform
 
     def inputs
       []
+    end
+
+    def >>(next_operation)
+      ActiveOperation::Pipeline.compose(self, next_operation)
+    end
+
+    def to_proc
+      ->(*args) {
+        perform(*args)
+      }
     end
 
     protected
@@ -121,6 +131,10 @@ class ActiveOperation::Base
     raise
   end
   alias call perform
+
+  def to_proc
+    -> { perform }
+  end
 
   def output
     call unless self.completed?
