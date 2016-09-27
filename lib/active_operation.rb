@@ -12,4 +12,4 @@ require_relative "active_operation/input"
 require_relative "active_operation/base"
 require_relative "active_operation/pipeline"
 
-require_relative "active_operation/matcher" if defined?(:RSpec)
+require_relative "active_operation/matcher" if defined?(::RSpec)
