@@ -1,0 +1,8 @@
+Description:
+    Generates an operation with the given name.
+
+Example:
+    rails generate active_operation:operation Signup
+
+    This will create:
+        app/operations/signup.rb
