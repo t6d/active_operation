@@ -4,7 +4,7 @@ require 'rails/generators/active_record'
 module ActiveOperation
   module Generators
     class OperationGenerator < Rails::Generators::NamedBase
-      source_root File.expand_path('../templates', __FILE__)
+      source_root File.expand_path('../../../../../support/templates', __FILE__)
 
       def create_operation
         template 'operation.rb', File.join('app/operations', class_path, "#{file_name}.rb")
