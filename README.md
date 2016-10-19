@@ -26,6 +26,20 @@ Or install it yourself as:
 $ gem install active_operation
 ```
 
+### Rails
+
+We recommend running the install generator to initialize a base operation:
+
+```
+rails g active_operation:install
+```
+
+You can also generate new operations using:
+
+```
+rails g active_operation:operation Signup
+```
+
 ## Usage
 
 To define an operation, create a new class and inherit from `ActiveOperation::Base`.
