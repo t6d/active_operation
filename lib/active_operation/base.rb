@@ -17,7 +17,7 @@ class ActiveOperation::Base
 
   class << self
     def perform(*args)
-      new(*args).call
+      new(*args).perform
     end
 
     def call(*args)
@@ -26,6 +26,16 @@ class ActiveOperation::Base
 
     def inputs
       []
+    end
+
+    def >>(next_operation)
+      ActiveOperation::Pipeline.compose(self, next_operation)
+    end
+
+    def to_proc
+      ->(*args) {
+        perform(*args)
+      }
     end
 
     protected
@@ -126,6 +136,10 @@ class ActiveOperation::Base
 
   def call
     perform
+  end
+
+  def to_proc
+    -> { perform }
   end
 
   def output
