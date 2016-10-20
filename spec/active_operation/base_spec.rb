@@ -32,4 +32,24 @@ describe ActiveOperation::Base do
     operation_instance = operation.new
     expect(operation_instance.output).to eq(operation_instance.output)
   end
+
+  context "when overriding perform" do
+    subject(:operation) do
+      Class.new(described_class) do
+        def perform
+          "overwritten"
+        end
+      end
+    end
+
+    specify "the #call alias should be resolved at runtime not at boot time" do
+      expect(operation.new.perform).to eq("overwritten")
+      expect(operation.new.call).to eq("overwritten")
+    end
+
+    specify "the .call alias should be resolved at runtime not at boot time" do
+      expect(operation.perform).to eq("overwritten")
+      expect(operation.call).to eq("overwritten")
+    end
+  end
 end

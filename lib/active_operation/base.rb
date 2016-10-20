@@ -19,7 +19,10 @@ class ActiveOperation::Base
     def perform(*args)
       new(*args).call
     end
-    alias call perform
+
+    def call(*args)
+      perform(*args)
+    end
 
     def inputs
       []
@@ -120,7 +123,10 @@ class ActiveOperation::Base
     run_callbacks :error
     raise
   end
-  alias call perform
+
+  def call
+    perform
+  end
 
   def output
     call unless self.completed?
