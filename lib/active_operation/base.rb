@@ -28,6 +28,12 @@ class ActiveOperation::Base
       []
     end
 
+    def to_proc
+      ->(*args) {
+        perform(*args)
+      }
+    end
+
     protected
 
     def input(name, type: :positional, **configuration)

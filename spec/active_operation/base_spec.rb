@@ -33,6 +33,39 @@ describe ActiveOperation::Base do
     expect(operation_instance.output).to eq(operation_instance.output)
   end
 
+  specify ".to_proc should generate a proc that will run the operation" do
+    doubler = Class.new(described_class) do
+      input :number
+
+      def execute
+        number * 2
+      end
+    end
+
+    expect([2, 4].map(&doubler)).to eq([4, 8])
+  end
+
+  specify ".to_proc should generate a proc that will run the operation and maps multiple arguments to the input" do
+    value_extractor = Class.new(described_class) do
+      input :key
+      input :value
+
+      def execute
+        value
+      end
+    end
+
+    value_generator = Class.new do
+      include Enumerable
+
+      def each
+        yield 1, 2
+      end
+    end
+
+    expect(value_generator.new.map(&value_extractor)).to eq([2])
+  end
+
   context "when overriding perform" do
     subject(:operation) do
       Class.new(described_class) do
