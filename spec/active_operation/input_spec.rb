@@ -5,10 +5,10 @@ describe ActiveOperation::Base do
     subject(:operation) do
       Class.new(ActiveOperation::Base) do
         input :name
-        input :likes_cucumber_tom_collins, type: :keyword
+        property :likes_cucumber_tom_collins
 
         def execute
-          [name, subscribe_to_newsletter]
+          [name, likes_cucumber_tom_collins]
         end
       end
     end
@@ -22,9 +22,65 @@ describe ActiveOperation::Base do
       expect(operation_instance.name).to eq("John")
     end
 
-    specify "the operation should take the subscribe_to_newsletter as a keyword argument" do
+    specify "the operation should take the likes_cucumber_tom_collins as a keyword argument" do
       operation_instance = operation.new("John", likes_cucumber_tom_collins: true)
       expect(operation_instance.likes_cucumber_tom_collins).to eq(true)
+    end
+
+    context "optional positional arguments and keyword argument" do
+      subject(:operation) do
+        Class.new(ActiveOperation::Base) do
+          input :id
+          property :limit
+
+          def execute
+            [id, limit]
+          end
+        end
+      end
+
+      specify "the operation should not require the positional argument" do
+        operation_instance = operation.new(limit: 5)
+        expect(operation_instance.limit).to eq(5)
+      end
+
+      specify "the operation should take the hash as a positional argument" do
+        operation_instance = operation.new(123)
+        expect(operation_instance.id).to eq(123)
+      end
+
+      specify "the operation should take the hash and limit as a positional argument" do
+        operation_instance = operation.new(123, limit: 5)
+        expect(operation_instance.limit).to eq(5)
+      end
+    end
+
+    context "optional positional hash argument and hash argument" do
+      subject(:operation) do
+        Class.new(ActiveOperation::Base) do
+          input :hash, accepts: Hash
+          property :limit
+
+          def execute
+            [hash, limit]
+          end
+        end
+      end
+
+      specify "the operation should not require the positional argument" do
+        operation_instance = operation.new(limit: 5)
+        expect(operation_instance.limit).to eq(5)
+      end
+
+      specify "the operation should take the hash as a positional argument" do
+        operation_instance = operation.new({ works: true })
+        expect(operation_instance.hash).to eq({ works: true })
+      end
+
+      specify "the operation should take the hash and limit as a positional argument" do
+        operation_instance = operation.new({ works: true }, limit: 5)
+        expect(operation_instance.limit).to eq(5)
+      end
     end
 
     context "inheritance" do

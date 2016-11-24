@@ -96,7 +96,7 @@ class ActiveOperation::Base
     end
   end
 
-  def initialize(*args)
+  def initialize(*args, **attrs)
     arity = self.class.inputs.count(&:positional?)
     arguments = args.shift(arity)
     attributes = args.last.kind_of?(Hash) ? args.pop : {}
