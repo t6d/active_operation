@@ -13,7 +13,7 @@ describe ActiveOperation::Base, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with(input).and_return(input) }
+    it { is_expected.to execute.when_called_with(input).and_return(input) }
   end
 
   describe "An operation that takes a Hash as input and an Hash of additional options" do
@@ -30,8 +30,8 @@ describe ActiveOperation::Base, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with(input, default_food: "bananas").and_return(food: "bananas") }
-    it { is_expected.to succeed_to_perform.when_initialized_with(input).and_return(food: "chunky bacon") }
+    it { is_expected.to execute.when_called_with(input, default_food: "bananas").and_return(food: "bananas") }
+    it { is_expected.to execute.when_called_with(input).and_return(food: "chunky bacon") }
   end
 
   describe "An operation that takes two named arguments as input and sums them up" do
@@ -45,7 +45,7 @@ describe ActiveOperation::Base, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with(1, 2).and_return(3) }
+    it { is_expected.to execute.when_called_with(1, 2).and_return(3) }
   end
 
   describe "An operation that takes two named arguments as input and simply returns all input arguments as output" do
@@ -59,7 +59,7 @@ describe ActiveOperation::Base, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with(1, 2).and_return([1, 2]) }
+    it { is_expected.to execute.when_called_with(1, 2).and_return([1, 2]) }
   end
 
   describe "An operation that takes multiple arguments as input where the last of these arguments is a Hash" do
@@ -74,8 +74,8 @@ describe ActiveOperation::Base, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with(1, 2).and_return(3) }
-    it { is_expected.to succeed_to_perform.when_initialized_with(1, 2, operator: :*).and_return(2) }
+    it { is_expected.to execute.when_called_with(1, 2).and_return(3) }
+    it { is_expected.to execute.when_called_with(1, 2, operator: :*).and_return(2) }
   end
 
   describe "An operation that takes a named argument and uses the setter for the named argument" do
@@ -89,7 +89,7 @@ describe ActiveOperation::Base, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with("unchanged").and_return("changed") }
+    it { is_expected.to execute.when_called_with("unchanged").and_return("changed") }
   end
 
   describe "An operation that manually defines a property for its first input argument that upcases its assgined value" do
@@ -103,7 +103,7 @@ describe ActiveOperation::Base, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with("hello").and_return("HELLO") }
+    it { is_expected.to execute.when_called_with("hello").and_return("HELLO") }
   end
 end
 
@@ -137,6 +137,6 @@ describe ActiveOperation::Pipeline, "input processing:" do
       end
     end
 
-    it { is_expected.to succeed_to_perform.and_return(3) }
+    it { is_expected.to execute.and_return(3) }
   end
 end

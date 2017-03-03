@@ -82,7 +82,7 @@ describe ActiveOperation::Pipeline do
       end.new
     end
 
-    it { is_expected.to succeed_to_perform.and_return('chunky bacon - chunky bacon - chunky bacon') }
+    it { is_expected.to execute.and_return('chunky bacon - chunky bacon - chunky bacon') }
   end
 
   context "when composed of two operations using the factory method '.compose'" do
@@ -90,7 +90,7 @@ describe ActiveOperation::Pipeline do
       described_class.compose(string_generator, string_capitalizer).new
     end
 
-    it { is_expected.to succeed_to_perform.and_return("CHUNKY BACON") }
+    it { is_expected.to execute.and_return("CHUNKY BACON") }
     it { is_expected.to utilize_operations(string_generator, string_capitalizer) }
   end
 
@@ -151,7 +151,7 @@ describe ActiveOperation::Pipeline do
       expect(composed_operation.inputs.map(&:name)).to eq(string_capitalizer.inputs.map(&:name))
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with("hello").and_return("HELLO HELLO") }
+    it { is_expected.to execute.when_called_with("hello").and_return("HELLO HELLO") }
   end
 end
 

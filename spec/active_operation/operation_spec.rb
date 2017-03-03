@@ -12,7 +12,7 @@ describe ActiveOperation::Base do
 
     subject { nil_operation.new }
 
-    it { is_expected.to succeed_to_perform.and_return(nil) }
+    it { is_expected.to execute.and_return(nil) }
   end
 
   context "that always halts and returns its original input" do
@@ -99,8 +99,8 @@ describe ActiveOperation::Base do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with("-").and_return("---") }
-    it { is_expected.to succeed_to_perform.when_initialized_with("-", multiplier: 5).and_return("-----") }
+    it { is_expected.to execute.when_called_with("-").and_return("---") }
+    it { is_expected.to execute.when_called_with("-", multiplier: 5).and_return("-----") }
   end
 
   context "that takes two values (a string and a multiplier)" do
@@ -115,7 +115,7 @@ describe ActiveOperation::Base do
       end
     end
 
-    it { is_expected.to succeed_to_perform.when_initialized_with("-", 3).and_return("---") }
+    it { is_expected.to execute.when_called_with("-", 3).and_return("---") }
   end
 
   context "inheritance" do
@@ -159,7 +159,7 @@ describe ActiveOperation::Base do
         expect(base_operation.inputs.map(&:name)).to eq([:text])
       end
 
-      it { is_expected.to succeed_to_perform.when_initialized_with("lorem ipsum").and_return("LOREM IPSUM") }
+      it { is_expected.to execute.when_called_with("lorem ipsum").and_return("LOREM IPSUM") }
     end
 
     context "the sub operation with different input" do
@@ -175,7 +175,7 @@ describe ActiveOperation::Base do
         expect(base_operation.inputs.map(&:name)).to eq([:text])
       end
 
-      it { is_expected.to succeed_to_perform.when_initialized_with("-", 3).and_return("---") }
+      it { is_expected.to execute.when_called_with("-", 3).and_return("---") }
     end
   end
 end
