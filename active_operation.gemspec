@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["konstantin@tennhard.net", "sebastian.szturo@gmail.com"]
 
   spec.summary       = %q{ActiveOperation is a micro-framework for modelling business processes.}
-  spec.homepage      = "https://gitub.com/t6d/active_operation"
+  spec.homepage      = "https://github.com/t6d/active_operation"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
