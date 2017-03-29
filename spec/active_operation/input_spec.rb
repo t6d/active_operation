@@ -14,7 +14,7 @@ describe ActiveOperation::Base do
     end
 
     specify "the operation should require a name" do
-      expect { operation.new }.to raise_error(ArgumentError)
+      expect(operation).not_to execute.because_of(ArgumentError)
     end
 
     specify "the operation should take the name as a positional argument" do
