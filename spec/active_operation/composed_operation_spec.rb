@@ -43,6 +43,34 @@ describe ActiveOperation::Pipeline do
     end
   end
 
+  let(:string_generator_for_lowercaser) do
+    Class.new(ActiveOperation::Base) do
+      property :size, default: 5
+
+      def self.name
+        "StringGeneratorForLowercaser"
+      end
+
+      def execute
+        { text: "A" * size }
+      end
+    end
+  end
+
+  let(:string_lowercaser) do
+    Class.new(ActiveOperation::Base) do
+      property! :text
+
+      def self.name
+        "StringLowercaser"
+      end
+
+      def execute
+        text.downcase
+      end
+    end
+  end
+
   let(:halting_operation) do
     Class.new(ActiveOperation::Base) do
       def self.name
@@ -111,6 +139,30 @@ describe ActiveOperation::Pipeline do
     it { is_expected.to utilize_operations(string_generator, string_capitalizer) }
   end
 
+  context(
+    "when composed of two operations, one that generates a string and one that lowercases strings by receiving its " \
+    "input as a required property"
+  ) do
+    subject(:composed_operation) do
+      operations = [string_generator_for_lowercaser, string_lowercaser]
+
+      Class.new(described_class) do
+        use operations.first
+        use operations.last
+      end
+    end
+
+    it "should return a 5-digit lowercase version of the generated string" do
+      expect(composed_operation.perform).to eq("aaaaa")
+    end
+
+    it "should return a 10-digit lowercase version of the generated string" do
+      expect(composed_operation.perform(size: 10)).to eq("aaaaaaaaaa")
+    end
+
+    it { is_expected.to utilize_operations(string_generator_for_lowercaser, string_lowercaser) }
+  end
+
   context "when composed of three operations, one that generates a string, one that halts and one that capatalizes strings" do
     subject(:composed_operation) do
       described_class.compose(string_generator, halting_operation, string_capitalizer)
@@ -154,4 +206,3 @@ describe ActiveOperation::Pipeline do
     it { is_expected.to succeed_to_perform.when_initialized_with("hello").and_return("HELLO HELLO") }
   end
 end
-
