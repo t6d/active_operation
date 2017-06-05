@@ -1,6 +1,5 @@
 module ActiveOperation
   class Pipeline < Base
-
     class OperationFactory < SimpleDelegator
       def initialize(operation_class, options = {})
         super(operation_class)
@@ -8,10 +7,17 @@ module ActiveOperation
       end
 
       def new(context, *input)
-        input = input.shift(inputs.map(&:positional?).count)
-        __getobj__.new *input, Hash[Array(@_options).map do |key, value|
-          [key, value.kind_of?(Proc) ? context.instance_exec(&value) : value]
-        end]
+        keyword_input_names = inputs.select(&:keyword?).map(&:name)
+        positional_args = input.shift(inputs.count(&:positional?))
+
+        attributes_from_input = input.last.kind_of?(Hash) ? input.pop.slice(*keyword_input_names) : {}
+        attributes_from_input.delete_if { |_, value| value.nil? }
+
+        attributes_from_pipeline = Array(@_options).each_with_object({}) do |(key, value), result|
+          result[key] = value.kind_of?(Proc) ? context.instance_exec(&value) : value
+        end
+
+        __getobj__.new *positional_args, attributes_from_input.merge(attributes_from_pipeline)
       end
     end
 
@@ -63,7 +69,9 @@ module ActiveOperation
       values = ->(input) { self[input.name] }
 
       positional_arguments = self.class.inputs.select(&:positional?).map(&values)
-      keyword_arguments = self.class.inputs.select(&:keyword?).map(&values)
+      keyword_arguments = self.class.inputs.select(&:keyword?).each_with_object({}) do |input, kwargs|
+        kwargs[input.name] = values.call(input)
+      end
       arguments = positional_arguments.push(keyword_arguments)
 
       self.class.operations.inject(arguments) do |data, operation|
@@ -72,13 +80,14 @@ module ActiveOperation
                     else
                       operation.new(self, data)
                     end
+
         operation.perform
 
-        if operation.halted?
-          halt operation.output
-        end
+        output = operation.output
 
-        operation.output
+        halt output if operation.halted?
+
+        output
       end
     end
   end
