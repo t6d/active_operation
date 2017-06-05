@@ -5,10 +5,10 @@ describe ActiveOperation::Base do
     subject(:operation) do
       Class.new(ActiveOperation::Base) do
         input :name
-        input :likes_cucumber_tom_collins, type: :keyword
+        property :likes_cucumber_tom_collins
 
         def execute
-          [name, subscribe_to_newsletter]
+          [name, likes_cucumber_tom_collins]
         end
       end
     end
@@ -22,7 +22,7 @@ describe ActiveOperation::Base do
       expect(operation_instance.name).to eq("John")
     end
 
-    specify "the operation should take the subscribe_to_newsletter as a keyword argument" do
+    specify "the operation should take the likes_cucumber_tom_collins as a keyword argument" do
       operation_instance = operation.new("John", likes_cucumber_tom_collins: true)
       expect(operation_instance.likes_cucumber_tom_collins).to eq(true)
     end

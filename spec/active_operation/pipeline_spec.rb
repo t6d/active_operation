@@ -154,4 +154,3 @@ describe ActiveOperation::Pipeline do
     it { is_expected.to succeed_to_perform.when_initialized_with("hello").and_return("HELLO HELLO") }
   end
 end
-
