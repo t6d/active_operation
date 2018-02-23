@@ -27,6 +27,8 @@ module ActiveOperation
       end
 
       def use(operation, options = {})
+        operation = ActiveOperation::Base.from_proc(operation) if operation.kind_of?(Proc)
+
         if operations.empty?
           inputs = operation.inputs
 

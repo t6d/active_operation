@@ -205,4 +205,33 @@ describe ActiveOperation::Pipeline do
 
     it { is_expected.to succeed_to_perform.when_initialized_with("hello").and_return("HELLO HELLO") }
   end
+
+  context "when composed of procs" do
+    it "should run all expressions in order and return the result of the last one" do
+      pipeline = described_class.compose do
+        use -> { 2 }
+        use -> (number) { number * 2 }
+        use -> (number) { number -1 }
+      end
+
+      expect(pipeline).to succeed_to_perform.and_return(3)
+    end
+
+    it "supports keyword arguments" do
+      pipeline = described_class.compose do
+        use -> { {number: 2} }
+        use ->(number:) { number * 2 }
+      end
+
+      expect(pipeline).to succeed_to_perform.and_return(4)
+    end
+
+    it "does not support optional positional arguments as Ruby's reflection mechanism does not support accessing the default value which is required to setup the operation inputs correctly" do
+      expect { described_class.compose { use ->(a = 1) {} } }.to raise_error(ArgumentError)
+    end
+
+    it "does not support optional keyword arguments as Ruby's reflection mechanism does not support accessing the default value which is required to setup the operation inputs correctly" do
+      expect { described_class.compose { use ->(a: 1) {} } }.to raise_error(ArgumentError)
+    end
+  end
 end
