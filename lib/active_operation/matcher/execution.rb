@@ -161,6 +161,8 @@ module ActiveOperation
   end
 end
 
+require 'rspec/core' unless defined? RSpec.configure
+
 RSpec.configure do |config|
   config.include ActiveOperation::Matcher::Execution
 end
