@@ -10,7 +10,7 @@ module ActiveOperation
       hook_for :test_framework
 
       def create_operation
-        template 'operation.rb.erb', File.join('app/operations', class_path, "#{file_name}_operation.rb")
+        template 'operation.rb.erb', File.join('app/operations', class_path, "#{file_name}.rb")
       end
     end
   end
