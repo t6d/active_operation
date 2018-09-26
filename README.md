@@ -11,7 +11,7 @@ The core idea behind an operation is to move code that usually would either live
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'active_operation', '~> 0.1.0'
+gem 'active_operation'
 ```
 
 And then execute:
@@ -20,7 +20,7 @@ And then execute:
 $ bundle
 ```
 
-Or install it yourself as:
+Or install it manually as:
 
 ```
 $ gem install active_operation
@@ -28,16 +28,16 @@ $ gem install active_operation
 
 ### Rails
 
-We recommend running the install generator to initialize a base operation:
+Run the the install generator to initialize a base operation:
 
 ```
 rails g active_operation:install
 ```
 
-You can also generate new operations using:
+Then generate the desired operation:
 
 ```
-rails g active_operation:operation Signup
+rails g active_operation:operation signup/create_user
 ```
 
 ## Usage
