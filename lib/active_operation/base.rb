@@ -20,6 +20,37 @@ class ActiveOperation::Base
       new(*args).call
     end
 
+    def from_proc(execute)
+      Class.new(self) do
+        positional_arguments = []
+        keyword_arguments = []
+
+        execute.parameters.each do |type, name|
+          case type
+          when :req
+            input name, type: :positional, required: true
+            positional_arguments << name
+          when :keyreq
+            input name, type: :keyword, required: true
+            keyword_arguments << name
+          else
+            raise ArgumentError, "Argument type not supported: #{type}"
+          end
+        end
+
+        define_method(:execute) do
+          args = positional_arguments.map { |name| self[name] }
+          opts = keyword_arguments.map { |name| [name, self[name]] }.to_h
+
+          if opts.empty?
+            execute.call(*args)
+          else
+            execute.call(*args, **opts)
+          end
+        end
+      end
+    end
+
     def call(*args)
       perform(*args)
     end
