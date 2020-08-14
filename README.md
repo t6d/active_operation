@@ -37,7 +37,7 @@ rails g active_operation:install
 Then generate the desired operation:
 
 ```
-rails g active_operation:operation signup/create_user
+rails g active_operation:operation Signup::CreateUser
 ```
 
 ## Usage
