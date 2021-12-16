@@ -1,6 +1,5 @@
 require "active_support/dependencies/autoload"
 require "active_support/callbacks"
-require "active_support/core_ext"
 require "delegate"
 require "smart_properties"
 
