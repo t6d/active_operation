@@ -211,7 +211,7 @@ describe ActiveOperation::Pipeline do
       pipeline = described_class.compose do
         use -> { 2 }
         use -> (number) { number * 2 }
-        use -> (number) { number -1 }
+        use -> (number) { number - 1 }
       end
 
       expect(pipeline).to succeed_to_perform.and_return(3)
