@@ -17,7 +17,7 @@ module ActiveOperation
           result[key] = value.kind_of?(Proc) ? context.instance_exec(&value) : value
         end
 
-        __getobj__.new *positional_args, attributes_from_input.merge(attributes_from_pipeline)
+        __getobj__.new(*positional_args, attributes_from_input.merge(attributes_from_pipeline))
       end
     end
 

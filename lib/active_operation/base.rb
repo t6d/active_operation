@@ -4,7 +4,7 @@ class ActiveOperation::Base
   include SmartProperties
   include ActiveSupport::Callbacks
 
-  attr_accessor :output
+  attr_writer :output
   attr_accessor :error
 
   property :state, accepts: [:initialized, :halted, :succeeded, :failed], required: true, default: :initialized
@@ -19,6 +19,7 @@ class ActiveOperation::Base
     def perform(*args)
       new(*args).call
     end
+    ruby2_keywords :perform if respond_to?(:ruby2_keywords, true)
 
     def from_proc(execute)
       Class.new(self) do
@@ -54,15 +55,18 @@ class ActiveOperation::Base
     def call(*args)
       perform(*args)
     end
+    ruby2_keywords :call if respond_to?(:ruby2_keywords, true)
 
     def inputs
       []
     end
 
     def to_proc
-      ->(*args) {
+      proc = ->(*args) {
         perform(*args)
       }
+      proc.ruby2_keywords if proc.respond_to?(:ruby2_keywords)
+      proc
     end
 
     protected

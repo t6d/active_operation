@@ -1,6 +1,7 @@
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 
-RSpec::Core::RakeTask.new(:spec)
+rspec = RSpec::Core::RakeTask.new(:spec)
+rspec.ruby_opts = "-w"
 
 task :default => :spec
